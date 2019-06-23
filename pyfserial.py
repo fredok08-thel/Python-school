@@ -8,7 +8,7 @@ import pandas as pd
 from serial import *
 import time
 
-def display_progress (x, tot):
+def display_progress(x, tot):
     p,deb,fin=int(100*x/tot),'█'*p,'.'*(100-p)
     print('|'+deb+fin+'|'+str(p)+"%",end='\r') 
 
@@ -62,7 +62,7 @@ def read_serial(port="auto",baudrate=9600,timeout = 50,nb_line = 250,sep=";",con
             i = 0
             while True:
                 if i%st == 0:
-                    print_progress_bar(i,nb_line)
+                    display_progress(i,nb_line)
                 if i>nb_line: 
                     break
                 try:
