@@ -1127,7 +1127,8 @@ def Nasa_horizons_query(id='3',id_type='majorbody', origin='@sun',epochs=dict(st
     return obj
 
 def display_progress(x, tot):
-    p,deb,fin=int(100*x/tot),'█'*p,'.'*(100-p)
+    p=int(100*x/tot)
+    deb,fin='▓'*p,'░'*(100-p)
     print('|'+deb+fin+'|'+str(p)+"%",end='\r') 
 
 pd.DataFrame.delta = delta

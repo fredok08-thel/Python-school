@@ -9,7 +9,8 @@ from serial import *
 import time
 
 def display_progress(x, tot):
-    p,deb,fin=int(100*x/tot),'█'*p,'.'*(100-p)
+    p=int(100*x/tot)
+    deb,fin='▓'*p,'░'*(100-p)
     print('|'+deb+fin+'|'+str(p)+"%",end='\r') 
 
 def read_serial(port="auto",baudrate=9600,timeout = 50,nb_line = 250,sep=";",convert_to='df',convert_as='float',columns_name=None,auto_save=True,filename=None,filetype='xlsx',decimal=','):
