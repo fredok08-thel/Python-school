@@ -1,2 +1,2 @@
 # Python-school
-Library for student of my school
+Library for students of my school
