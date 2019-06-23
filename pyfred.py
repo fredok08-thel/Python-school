@@ -1126,25 +1126,9 @@ def Nasa_horizons_query(id='3',id_type='majorbody', origin='@sun',epochs=dict(st
     obj.info = f"{astre}"
     return obj
 
-def print_progress_bar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
-    # Print New Line on Complete
-    if iteration == total: 
-        print()
+def display_progress(x, tot):
+    p,deb,fin=int(100*x/tot),'█'*p,'.'*(100-p)
+    print('|'+deb+fin+'|'+str(p)+"%",end='\r') 
 
 pd.DataFrame.delta = delta
 pd.DataFrame.check_op = check_op
