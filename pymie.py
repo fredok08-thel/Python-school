@@ -11,14 +11,30 @@ from plotly.offline import iplot
 import plotly.graph_objs as go
 from chempy import balance_stoichiometry
 from prettytable import PrettyTable
-from colorama import Fore, Back, Style
+from colorama import Fore,Style
+from ipywidgets import FloatProgress
+from IPython.display import display
+
 
 class Reaction():
     def __init__(self,data,info='pas de description'):
         self.dataframe = pd.DataFrame.from_dict(data)
         self.dataframe.info = info
         self.info = info
-    
+        self.bar = {}
+
+    def set_bar(self,esp):
+        self.bar[esp] = FloatProgress(value=0,min=0,max=100.0,step=1,description=esp,bar_style='info',orientation='horizontal')
+        display(self.bar[esp])
+        
+    def display_bar(self,esp,x,opt='percent'):
+        nmax = max(self.get_qte_final(esp),self.get_qte_ini(esp))
+        x=min(max(0,x),self.get_xmax())
+        n = self.get_qte(esp,x)
+        p = int(100*n/nmax)
+        self.bar[esp].description = f"{esp}  ({p}%)" if opt=='percent' else f"{esp}  ({n} mol)"
+        self.bar[esp].value = p
+
     def display_balance_eq(self,opt=1):
         """
         opt = 1 on print sans return
@@ -31,6 +47,24 @@ class Reaction():
             print(txt)
         else:
             return txt
+        
+    def display_bar(self,esp,x,endchar=''):
+        nmax = self.get_qte_final(esp) if self.get_type(esp) == 'p' else self.get_qte_ini(esp)
+        n = self.get_qte(esp,x)
+        p=int(100*n/nmax)
+        deb,fin='▓'*p,'░'*(100-p)
+        print('|'+deb+fin+'| '+esp+' '+str(p)+"%",end='\r')
+        if endchar != "":
+            print(endchar)
+        
+    def histogram(self,x):
+        xmax = self.get_xmax()
+        x = max(min(x,xmax),xmax)
+        for esp in self.get_esp_list():
+            self.display_bar(esp,x,endchar='\n')
+        print('',flush=True)
+        
+        
     
     def get_balance_eq(self):
         reac0 = set(self.get_reactant_list())
@@ -42,9 +76,6 @@ class Reaction():
         for esp in prod0:
             reaction.set_coef(esp,prod[esp])
         reaction.display_balance_eq()
-        
-    def get_type(self,esp):
-        return self.dataframe.loc[self.dataframe['esp']==esp,'type']
     
     def get_coef(self,esp):
         return float(self.dataframe.loc[self.dataframe['esp'] == esp,'coef'])
