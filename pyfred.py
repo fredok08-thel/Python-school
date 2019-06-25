@@ -116,9 +116,11 @@ def histogram(self,x='x',titre='pas de titre',orientation='vertical',histnorm=""
    courbes=[]
    for elem in x:
        if orientation.lower()=='vertical':
-           courbes.append(go.Histogram(x=self[elem],name=elem,histnorm=histnorm))
+           his = go.Histogram(x=self[elem],name=elem,histnorm=histnorm)
        else:
-           courbes.append(go.Histogram(y=self[elem],name=elem,histnorm=histnorm))
+           his = go.Histogram(y=self[elem],name=elem,histnorm=histnorm)
+       his['opacity'] = 0.75 if len(x)>1 else 1
+       courbes.append(his)
    layout = go.Layout(barmode='overlay')
    fig = go.Figure(data=courbes, layout=layout)
    return iplot(fig,filename='overlaid histogram')         
@@ -639,13 +641,14 @@ def f_read_wav(fichier,typ='tuple'):
         return t,data
     return {'t':t, 'data':data, 'sr':rate}
 
-def f_plot(x, y, titre='Courbe sans titre!!!', xlabel='pas de nom', ylabel='pas de nom', quadril_x=0, quadril_y=0):
+def f_plot(x, y, titre='Courbe sans titre!!!', labels=[], xlabel='pas de nom', ylabel='pas de nom', quadril_x=0, quadril_y=0):
     """
     fonction qui retourne un graphique
     Arguments:
         * x (série numpy): nom de l'absisse
         * y (série numpy): nom des l'ordonnées (ex y=['y1','y2'])
         * titre (str): titre du tracé - Defaut 'Courbe sans titre!!!'
+        * labels (list): liste des labels des ordonnées y
         * xlabel (str): nom de l'axe des absisses - Defaut 't(s)'
         * ylabel (str): nom de l'axe des ordonnées
     
@@ -655,8 +658,9 @@ def f_plot(x, y, titre='Courbe sans titre!!!', xlabel='pas de nom', ylabel='pas 
     if isinstance(y,np.ndarray):
         y=[y]
     courbes=[]
-    for i,elem in enumerate(y):
-        label=f'courbe n°{i}'
+    if len(labels)<len(y):
+        labels += [f'courbe n°{i}' for i in range(len(y)-len(courbes))]
+    for elem,label in zip(y,labels):
         if isinstance(elem,np.ndarray):
             courbes.append(go.Scatter(x=x, y=elem, mode='lines', name=label))
         else:
