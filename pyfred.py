@@ -19,7 +19,7 @@ from astroquery.jplhorizons import Horizons
 
 SPY = []
 SPY_KEY = 9 #clé pour l'utilisation de check_graph ou check_op ou ...
-__version__ = '1.0.4'
+__version__ = '1.0.9'
 
 def enable_plotly_in_cell():    
   """
@@ -405,9 +405,119 @@ def draw_vectors(self,point=('&','&'),vector=('vx','vy'),unsur=1,scalvect=1,titr
         self.vector3D(x=x,y=y,z=z,ux=ux,uy=uy,uz=uz,unsur=unsur,scalvect=scalvect,titre=titre,quadril_x=quadril_x,quadril_y=quadril_y)
     else:
         print(f'votre point={point} et vector={vector} ne conviennent pas')
-                
+  
+def vector_by_norm_and_direction(self,vector_norm,direction='centripetal',x='&',y='&',unsur=1,scalvect=1,titre="sans titre",quadril_x=0,quadril_y=0,**d):
+    """
+        Méthode/Fonction appliquée à une dataframe -> retourne la trajectoire avec des vecteurs.
+        Conditions d'utilisation :
+        
+        Arguments, signification et valeurs par défauts:
+        * x,y (str) : Noms des points d'applications des vecteurs - défaut 'x' et 'y'
+        * vector_norm (str) : Nom de la coordonnée représentant la norme du vecteur à tracer (ex vector_norm='F')
+        * direction (str) : représente l'orientation du vecteur:
+            >si 'centripetal'(defaut) le vecteur de norme u est représenté vers le centre de la trajectoire
+            >si 'centrifugal' le vecteur de norme u est représenté vers l'extérieure de la trajectoire
+            
+            
+        * titre (str): titre du graphique - Défaut titre='un titre'
+        * unsur (int): Affiche 1 vecteur sur unsur - Défaut unsur=1
+        * scalvect (float): echelle de tracé des vecteurs - Défaut scalvect=1.0
+        * quadril_x,quadril_y (int) : Densité du quadrillage (défaut 0,0)
+    Exemple 1: Utilisation pour visualiser le vecteur Force de gravitation de norme 'F' de la planètes Mars (dataFrameMars)
+        >dataFrameMars.vector(vector_norm='F',direction='centripetal',unsur=2)
+    """     
+    xx,yy='',''
+    #recherche du x,y par defaut
+    if (x=='&' and y=='&'):
+        list_x='x','X','x_mod','X_mod' #valeurs préalablement testées
+        list_y='y','Y','y_mod','Y_mod'
+        for lx in list_x:
+            if lx in list(self):
+                xx=lx
+                break
+        for ly in list_y:
+            if ly in list(self):
+                yy=ly
+                break
+    if (x in self) and (y in self):
+        xx, yy = x, y
+    if xx=='' or yy=='':
+        print(f"'X ou x' ou 'Y ou y' ne sont pas des colonnes de votre dataFrame, il faut spécifier une origine à vos vecteurs en utilisant x='**' et y='**' ou ** sont parmis\n{self.columns}")
+        return None
+    self['__r'] =self.norme(xx,yy)
+    if direction.lower()=='centripetal':
+        self['__vect_x']=-self[vector_norm]*self[xx]/self['__r']
+        self['__vect_y']=-self[vector_norm]*self[yy]/self['__r']
+    elif direction.lower()=='centrifugal':
+        self['__vect_x']=self[vector_norm]*self[xx]/self['__r']
+        self['__vect_y']=self[vector_norm]*self[yy]/self['__r']
+    else:
+        print("under construct...")
+        return None
+    result = self.vector(ux='__vect_x',uy='__vect_y',x=xx,y=yy,unsur=unsur,scalvect=scalvect,titre=titre,quadril_x=quadril_x,quadril_y=quadril_y,**d)
+    self.del_columns('__r','__vect_x','__vect_y')
+    return result
 
-def vector(self,ux,uy,x='&',y='&',unsur=1,scalvect=1,titre="sans titre",quadril_x=0,quadril_y=0):
+def vector_by_norm_and_direction3D(self,vector_norm,direction='centripetal',x='&',y='&',z='&',unsur=1,scalvect=1,titre="sans titre",quadril_x=0,quadril_y=0,**d):
+    """
+        Méthode/Fonction appliquée à une dataframe -> retourne la trajectoire avec des vecteurs en 3D.
+        Conditions d'utilisation :
+        
+        Arguments, signification et valeurs par défauts:
+        * x,y,z (str) : Noms des points d'applications des vecteurs - défaut 'x' , 'y' et 'z'
+        * vector_norm (str) : Nom de la coordonnée représentant la norme du vecteur à tracer (ex vector_norm='F')
+        * direction (str) : représente l'orientation du vecteur:
+            >si 'centripetal'(defaut) le vecteur de norme u est représenté vers le centre de la trajectoire
+            >si 'centrifugal' le vecteur de norme u est représenté vers l'extérieure de la trajectoire
+            
+            
+        * titre (str): titre du graphique - Défaut titre='un titre'
+        * unsur (int): Affiche 1 vecteur sur unsur - Défaut unsur=1
+        * scalvect (float): echelle de tracé des vecteurs - Défaut scalvect=1.0
+        * quadril_x,quadril_y (int) : Densité du quadrillage (défaut 0,0)
+    Exemple: Utilisation pour visualiser le vecteur Force de gravitation de norme 'F' de la planètes Mars (dataFrameMars)
+        >dataFrameMars.vector(vector_norm='F',direction='centripetal',unsur=2)
+    """     
+    xx,yy,zz='','',''
+    #recherche du x,y par defaut
+    if (x=='&' and y=='&' and z=='&'):
+        list_x='x','X','x_mod','X_mod' #valeurs préalablement testées
+        list_y='y','Y','y_mod','Y_mod'
+        list_z='z','Z','z_mod','Z_mod'
+        for lx in list_x:
+            if lx in list(self):
+                xx=lx
+                break
+        for ly in list_y:
+            if ly in list(self):
+                yy=ly
+                break
+        for lz in list_z:
+            if lz in list(self):
+                zz=lz
+                break
+    if (x in self) and (y in self) and (z in self):
+        xx, yy, zz = x, y, z
+    if xx=='' or yy=='' or zz=='':
+        print(f"'X ou x' ou 'Y ou y' ou 'Z ou z' ne sont pas des colonnes de votre dataFrame, il faut spécifier un point d'application à vos vecteurs en utilisant x='**' et y='**' ou ** sont parmis\n{self.columns}")
+        return None
+    self['__r'] =self.norme(xx,yy,zz)
+    if direction.lower()=='centripetal':
+        self['__vect_x']=-self[vector_norm]*self[xx]/self['__r']
+        self['__vect_y']=-self[vector_norm]*self[yy]/self['__r']
+        self['__vect_z']=-self[vector_norm]*self[zz]/self['__r']
+    elif direction.lower()=='centrifugal':
+        self['__vect_x']=self[vector_norm]*self[xx]/self['__r']
+        self['__vect_y']=self[vector_norm]*self[yy]/self['__r']
+        self['__vect_z']=self[vector_norm]*self[zz]/self['__r']
+    else:
+        print("under construct...")
+        return None
+    result = self.vector3D(ux='__vect_x',uy='__vect_y',uz='__vect_z',x=xx,y=yy,z=zz,unsur=unsur,scalvect=scalvect,titre=titre,quadril_x=quadril_x,quadril_y=quadril_y)
+    self.del_columns('__r','__vect_x','__vect_y','__vec_z')
+    return result
+
+def vector(self,ux,uy,x='&',y='&',unsur=1,scalvect=1,titre="sans titre",quadril_x=0,quadril_y=0,**d):
     """
         Méthode/Fonction appliquée à une dataframe -> retourne la trajectoire avec des vecteurs.
         Conditions d'utilisation :
@@ -421,7 +531,6 @@ def vector(self,ux,uy,x='&',y='&',unsur=1,scalvect=1,titre="sans titre",quadril_
         * quadril_x,quadril_y (int) : Densité du quadrillage (défaut 0,0)
     Exemple 1: Utilisation pour visualiser le vecteur vitesse (VX,VY) de la planètes Mars (dataFrameMars)
         >dataFrameMars.vector(ux='VX',uy='VY',unsur=2)
-    Exemple 2: Visualiser le vecteur accélération 'ax','ay' de la dataframe ballon
         >ballon.vector(ux='ax',uy='ay')
     """
     xx,yy='',''
@@ -530,6 +639,27 @@ def get_kinematic(self,xyzt,**d):
     self["v"]=self.eval(f"({txt_v})**(1/2)")
     self["a"]=self.eval(f"({txt_a})**(1/2)")
     return self.head()
+
+def compute_ntc_model(self,temp='T',resistor='R',**d):
+    T0=298.15
+    print(f"compute log{resistor} and inverse 1/{temp} ..\n")
+    self['__invT']=1/(273.15+self[temp])
+    self['__lnR']=np.log(self[resistor])
+    anim_bar(100,8,0.25)
+    print('\n')
+    print("compute regression ...\n")
+    anim_bar(100,10,0.3)
+    print('\n')
+    idx = np.isfinite(self['__invT']) & np.isfinite(self['__lnR'])
+    resultat = np.polyfit(self['__invT'][idx],self['__lnR'][idx],1)
+    #print(f"résultat .. ln(R)={resultat[0]}*(1/T)+{resultat[1]}")
+    beta = resultat[0]
+    R0 = np.exp(resultat[1]+beta/T0)
+    print(f'characteristics of the resistor NTC ... \nBeta={resultat[0]:.1f}\tR0={R0:.1f} Ohm  @{T0-273.15} °C')
+    self['__R_mod']=R0*np.exp(beta*(1/(273.15+self[temp])-1/T0))
+    print("\ngraphic of regression")
+    self.scatter2D(x=temp,y=[resistor,'__R_mod'],**d)
+    self.del_columns('__invT','__lnR','__R_mod') 
 
 def derive(self,df,dt,opt=(1,0)):
     a,b = opt[0],opt[1]
@@ -1108,11 +1238,14 @@ def format_to_valid_y(y):
     if isinstance(y,tuple):
         return list(y)
 
-def Nasa_horizons_query(id='3',id_type='majorbody', origin='@sun',epochs=dict(start='2016-10-01',stop='2017-10-02',step='10m'),**d):
+def Nasa_horizons_query(id='3',id_type='majorbody', origin='@sun',epochs=dict(start='2016-10-01',stop='2017-10-02',step='10d'),**d):
     print("connect to NASA JPL Horizons ...\r",end='\r')
     obj = Horizons(id=id,id_type=id_type,location=origin,epochs=epochs).vectors().to_pandas()
     astre = obj['targetname'][0]
     print(f"query of {astre} ..... start={epochs['start']}..end={epochs['stop']}.... finish")
+    if d.get('keep_r',False):
+        obj.rename({'range':'r'}, axis=1, inplace=True)
+        obj['r'] = 1.496e+11*obj['r']
     if not d.get('keep_date',False):
         obj.del_columns('datetime_str',display=False)
     else:
@@ -1135,6 +1268,11 @@ def display_progress(x, tot):
     deb,fin='▓'*p,'░'*(100-p)
     print('|'+deb+fin+'|'+str(p)+"%",end='\r') 
 
+def anim_bar(xmax,step,dt):
+    for i in range(0,xmax,step):
+        display_progress(i,xmax)
+        sleep(dt)
+
 pd.DataFrame.delta = delta
 pd.DataFrame.check_op = check_op
 pd.DataFrame.vector = vector
@@ -1152,3 +1290,6 @@ pd.DataFrame.scatterPolar = scatterPolar
 pd.DataFrame.histogram = histogram
 pd.DataFrame.draw_vectors = draw_vectors
 pd.DataFrame.get_kinematic = get_kinematic
+pd.DataFrame.compute_ntc_model = compute_ntc_model
+pd.DataFrame.vector_by_norm_and_direction = vector_by_norm_and_direction
+pd.DataFrame.vector_by_norm_and_direction3D = vector_by_norm_and_direction3D
